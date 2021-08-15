@@ -1,11 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
+  let goodDogFilter = false; //default good dog = fault//off
   const dogBar = document.querySelector("div#dog-bar");
   const dogInfo = document.querySelector("div#dog-info");
-
+  const filter = document.getElementById("good-dog-filter");
   const baseURL = "http://localhost:3000/pups";
   const clearTags = () => {
     while (dogInfo.firstChild) {
-        dogInfo.removeChild(dogInfo.firstChild);
+      dogInfo.removeChild(dogInfo.firstChild);
+    }
+  };
+
+  const clearBar = () => {
+    while (dogBar.firstChild) {
+        dogBar.removeChild(dogBar.firstChild);
       }
   };
   const setAttributes = (el, attrs) => {
@@ -21,7 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const createDogBar = (data) => {
+  const dogFilterText = (goodDogFilter) => {
+    if (goodDogFilter) {
+      return "Filter good dogs: ON";
+    } else {
+      return "Filter good dogs: Off";
+    }
+  };
+
+  const createDogBar = (data, goodDogFilter = false) => {
     // console.log("data passed to createdDogBar: ", data);
     for (const item of data) {
       const spanB = document.createElement("span");
@@ -41,46 +56,55 @@ document.addEventListener("DOMContentLoaded", () => {
           height: "300",
         });
         h2.innerText = item.name;
-
         button.innerText = goodOrbad(item.isGoodDog);
-
         dogInfo.append(img, h2, button);
       });
-      //console.log("dogBar: ", dogBar);
-      dogBar.appendChild(spanB);
+
+      if (!goodDogFilter || item.isGoodDog) {
+        dogBar.appendChild(spanB);
+      }
+
       button.addEventListener("click", () => {
         item.isGoodDog = !item.isGoodDog;
-        confObj = {
+        const confObj = {
           method: "PATCH",
-          header: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
+          headers: {
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            isGoodDog: item.isGoodDog,
-          }),
+            isGoodDog: item.isGoodDog
+          })
         };
+        console.log("conf_obj: ",confObj);
         fetch(baseURL + "/" + item.id, confObj)
           .then((resp) => resp.json())
           .then((data) => {
             button.innerText = goodOrbad(item.isGoodDog);
             console.log(data);
+            clearTags();
+            fetchList(goodDogFilter);
           })
           .catch((e) => console.log(e));
       });
     }
   };
 
-  const fetchList = () => {
+  const fetchList = (goodDogFilter) => {
     fetch(baseURL)
       .then((resp) => resp.json())
       .then((data) => {
-        createDogBar(data);
+        createDogBar(data, goodDogFilter);
       })
       .catch((e) => {
         console.log("error: ", e);
       });
   };
 
-  fetchList();
+  fetchList(goodDogFilter);
+  filter.addEventListener("click", () => {
+    goodDogFilter = !goodDogFilter;
+    filter.innerText = dogFilterText(goodDogFilter);
+    clearBar();
+    fetchList(goodDogFilter);
+  });
 });
