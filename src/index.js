@@ -81,8 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
           .then((data) => {
             button.innerText = goodOrbad(item.isGoodDog);
             console.log(data);
-            clearTags();
-            fetchList(goodDogFilter);
+            //clearTags();
+            //fetchList(goodDogFilter);
           })
           .catch((e) => console.log(e));
       });
